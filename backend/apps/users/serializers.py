@@ -15,3 +15,10 @@ class UserSerializer(serializers.ModelSerializer):
             score=validated_data.get('score', 0)
         )
         return user
+
+class UserRankingSerializer(serializers.ModelSerializer):
+    last_score_update = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S')
+    
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'score', 'last_score_update')

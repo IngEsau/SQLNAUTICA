@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'apps.users',
+    'apps.level',
 ]
 
 MIDDLEWARE = [
@@ -117,7 +118,8 @@ STATICFILES_DIRS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DATE_TIME_FORMAT': '%d/%m/%Y %H:%M:%S',
 }
 
 SIMPLE_JWT = {
