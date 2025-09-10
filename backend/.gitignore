@@ -8,6 +8,11 @@ db.sqlite3
 db.sqlite3-journal
 media/
 
+# Ignora todo en carpetas migrations
+**/migrations/*
+# Pero no ignores los archivos __init__.py en esas carpetas
+!**/migrations/__init__.py
+
 # Virtual environment
 .venv/
 env/
