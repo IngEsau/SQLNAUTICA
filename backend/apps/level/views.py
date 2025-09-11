@@ -8,6 +8,7 @@ import os
 from django.conf import settings
 from .models import Level, Clue, Challenge
 from .serializers import LevelSerializer, ClueSerializer, ChallengeSerializer, LevelDetailSerializer
+from apps.users.models import CustomUser
 
 class LevelViewSet(viewsets.ModelViewSet):
     """ Viewset to levels """
@@ -114,15 +115,19 @@ def verify_code(request, level_id):
     provided_code = request.data.get('code', '')
     
     if level.code == provided_code:
-        return Response(
-            "nivel completado!", 
-            status=status.HTTP_200_OK
-        )
+        return Response({
+            "success": True,
+            "message": "¡Nivel completado!",
+            "level_id": level_id,
+            "next_level_available": True
+        }, status=status.HTTP_200_OK)
     else:
-        return Response(
-            "Error vuelve a intentar!", 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({
+            "success": False,
+            "message": "Código incorrecto. Vuelve a intentar!",
+            "expected_code": level.code,
+            "provided_code": provided_code
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -160,11 +165,51 @@ def validate_challenge(request, level_id, challenge_id):
         
         # Verify if the user query matches the expected answer
         if user_sql == expected_sql:
+            # Add points to the authenticated user
+            user = request.user
+            if isinstance(user, CustomUser):
+                user.score += challenge.score
+                user.save()  # This will also update last_score_update automatically
+            
+            # Save code part to level's SQLite database
+            code_part_saved = False
+            if challenge.code_part:
+                try:
+                    db_path = os.path.join(settings.BASE_DIR, f'level_{level_id}_db.sqlite3')
+                    
+                    with sqlite3.connect(db_path) as conn:
+                        cursor = conn.cursor()
+                        # Create code_parts table if it doesn't exist
+                        cursor.execute('''
+                            CREATE TABLE IF NOT EXISTS code_parts (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                challenge_id INTEGER,
+                                code_part TEXT,
+                                username TEXT,
+                                completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                            )
+                        ''')
+                        
+                        # Insert the code part
+                        cursor.execute('''
+                            INSERT INTO code_parts (challenge_id, code_part, username)
+                            VALUES (?, ?, ?)
+                        ''', (challenge.id, challenge.code_part, user.username))
+                        
+                        conn.commit()
+                        code_part_saved = True
+                        
+                except sqlite3.Error as e:
+                    print(f"Error saving code part: {e}")
+            
             return Response({
                 "success": True,
                 "message": "¡Reto completado correctamente!",
                 "score": challenge.score,
-                "challenge_id": challenge.id
+                "challenge_id": challenge.id,
+                "user_total_score": user.score if isinstance(user, CustomUser) else 0,
+                "code_part": challenge.code_part if challenge.code_part else None,
+                "code_part_saved": code_part_saved
             })
         else:
             return Response({

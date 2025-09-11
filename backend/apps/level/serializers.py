@@ -10,7 +10,7 @@ class ClueSerializer(serializers.ModelSerializer):
 class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
-        fields = ['id', 'level', 'question', 'answer', 'score']
+        fields = ['id', 'level', 'question', 'answer', 'score', 'code_part']
 
 
 class LevelSerializer(serializers.ModelSerializer):

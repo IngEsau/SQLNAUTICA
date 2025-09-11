@@ -27,6 +27,7 @@ class Challenge(models.Model):
     question = models.TextField()
     answer = models.CharField(max_length=200)
     score = models.IntegerField(default=0)
+    code_part = models.CharField(max_length=10, blank=True, help_text="Parte del código que se obtiene al completar este desafío")
 
     def __str__(self):
         return f"Challenge for {self.level.name}"

@@ -2,7 +2,7 @@
 
 ## Descripción del Proyecto
 
-SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativo de SQL. Los usuarios pueden registrarse, completar niveles con desafíos SQL, y competir en un ranking basado en puntuaciones.
+SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativo de SQL. Los usuarios pueden registrarse, completar niveles con desafíos SQL, recolectar partes de códigos para avanzar entre niveles, y competir en un ranking basado en puntuaciones. Cada nivel presenta desafíos SQL progresivos que otorgan puntos y partes de un código de finalización.
 
 ## Configuración de Autenticación
 
@@ -417,13 +417,23 @@ SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativ
 ```
 
 **Respuesta Correcta:**
-```
-"nivel completado!"
+```json
+{
+    "success": true,
+    "message": "¡Nivel completado!",
+    "level_id": 1,
+    "next_level_available": true
+}
 ```
 
 **Respuesta Incorrecta:**
-```
-"Error vuelve a intentar!"
+```json
+{
+    "success": false,
+    "message": "Código incorrecto. Vuelve a intentar!",
+    "expected_code": "1234",
+    "provided_code": "12"
+}
 ```
 
 ### 3. Validar Desafío
@@ -444,7 +454,10 @@ SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativ
     "success": true,
     "message": "¡Reto completado correctamente!",
     "score": 10,
-    "challenge_id": 1
+    "challenge_id": 1,
+    "user_total_score": 25,
+    "code_part": "1",
+    "code_part_saved": true
 }
 ```
 
@@ -460,7 +473,47 @@ SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativ
 
 ---
 
-## 📊 Modelos de Datos
+##  Sistema de Código por Partes
+
+### Descripción
+Cada nivel tiene un código de finalización (ej: "1234") que se obtiene completando desafíos individuales. Cada desafío otorga una parte del código (ej: "1", "2", "3", "4").
+
+### Flujo de Funcionamiento
+1. **Usuario completa desafío** → Obtiene parte del código
+2. **Parte se guarda** en tabla `code_parts` de la base de datos SQLite del nivel
+3. **Usuario consulta partes** con `SELECT * FROM code_parts`
+4. **Usuario reconstruye código** completo (ej: "1234")
+5. **Usuario verifica código** con endpoint `verify-code`
+
+### Tabla code_parts (SQLite por nivel)
+```sql
+CREATE TABLE code_parts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    challenge_id INTEGER,
+    code_part TEXT,
+    username TEXT,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+```
+
+### Ejemplo de Uso
+```sql
+-- Ver partes recolectadas
+SELECT * FROM code_parts;
+
+-- Resultado:
+-- id | challenge_id | code_part | username | completed_at
+-- 1  | 1           | "1"       | usuario  | 2025-09-10 23:00:00
+-- 2  | 2           | "2"       | usuario  | 2025-09-10 23:01:00
+-- 3  | 3           | "3"       | usuario  | 2025-09-10 23:02:00
+-- 4  | 4           | "4"       | usuario  | 2025-09-10 23:03:00
+
+-- Código reconstruido: "1234"
+```
+
+---
+
+##  Modelos de Datos
 
 ### CustomUser
 ```python
@@ -501,7 +554,8 @@ SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativ
     "level": "foreign_key (Level)",
     "question": "text",
     "answer": "string (max_length: 200)",
-    "score": "integer (default: 0)"
+    "score": "integer (default: 0)",
+    "code_part": "string (max_length: 10, blank=True)"
 }
 ```
 
@@ -540,6 +594,13 @@ SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativ
 
 3. **Validación de Desafíos**: Las consultas SQL se normalizan (minúsculas, sin espacios extra, sin punto y coma) antes de comparar con la respuesta esperada.
 
-4. **Ranking**: Se ordena por puntuación descendente y luego por fecha de última actualización de puntuación.
+4. **Sistema de Código por Partes**: 
+   - Cada desafío puede otorgar una parte del código de finalización del nivel
+   - Las partes se almacenan automáticamente en la tabla `code_parts` de la base de datos SQLite del nivel
+   - El usuario debe reconstruir el código completo para avanzar al siguiente nivel
 
-5. **Seguridad**: Las contraseñas se almacenan hasheadas y no se devuelven en las respuestas de la API.
+5. **Suma Automática de Puntos**: Al completar un desafío correctamente, se suman automáticamente los puntos al score del usuario y se actualiza `last_score_update`.
+
+6. **Ranking**: Se ordena por puntuación descendente y luego por fecha de última actualización de puntuación.
+
+7. **Seguridad**: Las contraseñas se almacenan hasheadas y no se devuelven en las respuestas de la API.
