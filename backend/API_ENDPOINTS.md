@@ -1,410 +1,545 @@
-# SQLNAUTICA API - Documentación de Endpoints
+# SQLNAUTICA - API Endpoints Documentation
 
-## 📋 Información General
+## Descripción del Proyecto
 
-- **Base URL**: `http://127.0.0.1:8000/`
-- **Autenticación**: JWT (JSON Web Tokens)
-- **Formato de fechas**: `dd/mm/yyyy hh:mm:ss`
+SQLNAUTICA es una aplicación Django REST Framework que simula un juego educativo de SQL. Los usuarios pueden registrarse, completar niveles con desafíos SQL, y competir en un ranking basado en puntuaciones.
+
+## Configuración de Autenticación
+
+- **Tipo de Autenticación**: JWT (JSON Web Tokens)
+- **Duración del Access Token**: 30 minutos
+- **Duración del Refresh Token**: 1 día
+- **Header de Autenticación**: `Authorization: Bearer <token>`
+- **Permisos por defecto**: Requiere autenticación para todos los endpoints (excepto los marcados como `AllowAny`)
 
 ---
 
 ## 🔐 Autenticación
 
-### Obtener Token de Acceso
+### 1. Obtener Token de Acceso
 - **Endpoint**: `POST /api/token/`
-- **Descripción**: Obtener token de acceso para autenticación
 - **Autenticación**: No requerida
-- **Body**:
-  ```json
-  {
-    "username": "tu_usuario",
-    "password": "tu_contraseña"
-  }
-  ```
-- **Respuesta**:
-  ```json
-  {
+- **Descripción**: Obtiene un access token y refresh token usando credenciales de usuario
+
+**Body:**
+```json
+{
+    "username": "nombre_usuario",
+    "password": "contraseña"
+}
+```
+
+**Respuesta:**
+```json
+{
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-  }
-  ```
+}
+```
 
-### Renovar Token de Acceso
+### 2. Renovar Token de Acceso
 - **Endpoint**: `POST /api/token/refresh/`
-- **Descripción**: Renovar token de acceso usando refresh token
 - **Autenticación**: No requerida
-- **Body**:
-  ```json
-  {
+- **Descripción**: Renueva el access token usando el refresh token
+
+**Body:**
+```json
+{
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-  }
-  ```
+}
+```
+
+**Respuesta:**
+```json
+{
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
 
 ---
 
 ## 👥 Usuarios
 
-### Listar Usuarios
-- **Endpoint**: `GET /api/users/users/`
-- **Descripción**: Obtener lista de todos los usuarios
-- **Autenticación**: No requerida
-- **Respuesta**:
-  ```json
-  [
+### 1. Listar Usuarios
+- **Endpoint**: `GET /api/users/`
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene la lista de todos los usuarios
+
+**Respuesta:**
+```json
+[
     {
-      "id": 1,
-      "username": "usuario1",
-      "score": 1500
+        "id": 1,
+        "username": "usuario1",
+        "score": 150
     }
-  ]
-  ```
+]
+```
 
-### Crear Usuario
-- **Endpoint**: `POST /api/users/users/`
-- **Descripción**: Registrar nuevo usuario
-- **Autenticación**: No requerida
-- **Body**:
-  ```json
-  {
+### 2. Crear Usuario (Registro)
+- **Endpoint**: `POST /api/users/`
+- **Autenticación**: No requerida (`AllowAny`)
+- **Descripción**: Registra un nuevo usuario en el sistema
+
+**Body:**
+```json
+{
     "username": "nuevo_usuario",
-    "password": "contraseña_segura"
-  }
-  ```
+    "password": "contraseña_segura",
+    "score": 0
+}
+```
 
-### Obtener Usuario Específico
-- **Endpoint**: `GET /api/users/users/{id}/`
-- **Descripción**: Obtener información de un usuario específico
-- **Autenticación**: No requerida
+**Respuesta:**
+```json
+{
+    "id": 2,
+    "username": "nuevo_usuario",
+    "score": 0
+}
+```
 
-### Actualizar Usuario Completo
-- **Endpoint**: `PUT /api/users/users/{id}/`
-- **Descripción**: Actualizar todos los campos de un usuario
-- **Autenticación**: No requerida
-- **Body**:
-  ```json
-  {
+### 3. Obtener Usuario Específico
+- **Endpoint**: `GET /api/users/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene los datos de un usuario específico
+
+**Respuesta:**
+```json
+{
+    "id": 1,
+    "username": "usuario1",
+    "score": 150
+}
+```
+
+### 4. Actualizar Usuario
+- **Endpoint**: `PUT /api/users/{id}/` o `PATCH /api/users/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Actualiza los datos de un usuario
+
+**Body (PUT - completo):**
+```json
+{
     "username": "usuario_actualizado",
     "password": "nueva_contraseña",
-    "score": 2000
-  }
-  ```
+    "score": 200
+}
+```
 
-### Actualizar Usuario Parcialmente
-- **Endpoint**: `PATCH /api/users/users/{id}/`
-- **Descripción**: Actualizar campos específicos de un usuario
-- **Autenticación**: No requerida
-- **Body**:
-  ```json
-  {
-    "score": 2500
-  }
-  ```
+**Body (PATCH - parcial):**
+```json
+{
+    "score": 200
+}
+```
 
-### Eliminar Usuario
-- **Endpoint**: `DELETE /api/users/users/{id}/`
-- **Descripción**: Eliminar un usuario
-- **Autenticación**: No requerida
+### 5. Eliminar Usuario
+- **Endpoint**: `DELETE /api/users/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Elimina un usuario del sistema
 
-### 🏆 Ranking de Usuarios
-- **Endpoint**: `GET /api/users/users/ranking/`
-- **Descripción**: Obtener ranking de usuarios ordenado por score (del mayor al menor)
-- **Autenticación**: No requerida
-- **Características**:
-  - Ordenado por score descendente
-  - En caso de empate, ordenado por `last_score_update` ascendente (el que actualizó primero tiene prioridad)
-  - Solo devuelve: `username`, `score`, `last_score_update`
-- **Respuesta**:
-  ```json
-  [
+### 6. Ranking de Usuarios
+- **Endpoint**: `GET /api/users/ranking/`
+- **Autenticación**: No requerida (`AllowAny`)
+- **Descripción**: Obtiene el ranking de usuarios ordenado por puntuación
+
+**Respuesta:**
+```json
+[
     {
-      "username": "player1",
-      "score": 1500,
-      "last_score_update": "15/01/2024 10:30:00"
+        "username": "usuario_ganador",
+        "score": 500,
+        "last_score_update": "15/12/2024 14:30:25"
     },
     {
-      "username": "player2",
-      "score": 1200,
-      "last_score_update": "20/01/2024 14:45:00"
-    },
-    {
-      "username": "player3",
-      "score": 1200,
-      "last_score_update": "25/01/2024 09:15:00"
+        "username": "usuario_segundo",
+        "score": 300,
+        "last_score_update": "15/12/2024 13:45:10"
     }
-  ]
-  ```
+]
+```
 
 ---
 
 ## 🎮 Niveles
 
-### Listar Niveles
+### 1. Listar Niveles
 - **Endpoint**: `GET /api/levels/levels/`
-- **Descripción**: Obtener lista de todos los niveles
-- **Autenticación**: JWT requerida
-- **Headers**: `Authorization: Bearer {token}`
-- **Respuesta**:
-  ```json
-  [
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene la lista de todos los niveles con sus pistas y desafíos
+
+**Respuesta:**
+```json
+[
     {
-      "id": 1,
-      "name": "Nivel 1",
-      "description": "Descripción del nivel",
-      "key": "nivel_1",
-      "created_at": "15/01/2024 10:30:00",
-      "clues": [],
-      "challenges": []
+        "id": 1,
+        "name": "Nivel 1: Introducción a SQL",
+        "description": "Aprende los conceptos básicos de SQL",
+        "code": "1234",
+        "created_at": "2024-12-15T10:00:00Z",
+        "clues": [
+            {
+                "id": 1,
+                "level": 1,
+                "text": "Usa CREATE TABLE para crear una tabla",
+                "order": 1
+            }
+        ],
+        "challenges": [
+            {
+                "id": 1,
+                "level": 1,
+                "question": "Crea una tabla llamada 'mochila'",
+                "answer": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT)",
+                "score": 10
+            }
+        ]
     }
-  ]
-  ```
+]
+```
 
-### Crear Nivel
+### 2. Crear Nivel
 - **Endpoint**: `POST /api/levels/levels/`
-- **Descripción**: Crear nuevo nivel
-- **Autenticación**: JWT requerida
-- **Body**:
-  ```json
-  {
+- **Autenticación**: Requerida
+- **Descripción**: Crea un nuevo nivel
+
+**Body:**
+```json
+{
     "name": "Nuevo Nivel",
-    "description": "Descripción del nuevo nivel",
-    "key": "nuevo_nivel"
-  }
-  ```
+    "description": "Descripción del nivel",
+    "code": "5678"
+}
+```
 
-### Obtener Nivel Específico
+### 3. Obtener Nivel Específico
 - **Endpoint**: `GET /api/levels/levels/{id}/`
-- **Descripción**: Obtener información de un nivel específico
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene un nivel específico con todos sus datos
 
-### Actualizar Nivel Completo
-- **Endpoint**: `PUT /api/levels/levels/{id}/`
-- **Descripción**: Actualizar todos los campos de un nivel
-- **Autenticación**: JWT requerida
+### 4. Actualizar Nivel
+- **Endpoint**: `PUT /api/levels/levels/{id}/` o `PATCH /api/levels/levels/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Actualiza un nivel existente
 
-### Actualizar Nivel Parcialmente
-- **Endpoint**: `PATCH /api/levels/levels/{id}/`
-- **Descripción**: Actualizar campos específicos de un nivel
-- **Autenticación**: JWT requerida
-
-### Eliminar Nivel
+### 5. Eliminar Nivel
 - **Endpoint**: `DELETE /api/levels/levels/{id}/`
-- **Descripción**: Eliminar un nivel
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Elimina un nivel
+
+### 6. Detalle de Nivel
+- **Endpoint**: `GET /api/levels/levels/{id}/detail/`
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene el detalle específico de un nivel (solo pistas y desafíos)
+
+**Respuesta:**
+```json
+{
+    "id": 1,
+    "challenges": [
+        {
+            "id": 1,
+            "level": 1,
+            "question": "Crea una tabla llamada 'mochila'",
+            "answer": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT)",
+            "score": 10
+        }
+    ],
+    "clues": [
+        {
+            "id": 1,
+            "level": 1,
+            "text": "Usa CREATE TABLE para crear una tabla",
+            "order": 1
+        }
+    ]
+}
+```
 
 ---
 
 ## 🔍 Pistas (Clues)
 
-### Listar Pistas
+### 1. Listar Pistas
 - **Endpoint**: `GET /api/levels/clues/`
-- **Descripción**: Obtener lista de todas las pistas
-- **Autenticación**: JWT requerida
-- **Respuesta**:
-  ```json
-  [
-    {
-      "id": 1,
-      "level": 1,
-      "text": "Esta es una pista",
-      "order": 1
-    }
-  ]
-  ```
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene todas las pistas
 
-### Crear Pista
+**Respuesta:**
+```json
+[
+    {
+        "id": 1,
+        "level": 1,
+        "text": "Usa CREATE TABLE para crear una tabla",
+        "order": 1
+    }
+]
+```
+
+### 2. Crear Pista
 - **Endpoint**: `POST /api/levels/clues/`
-- **Descripción**: Crear nueva pista
-- **Autenticación**: JWT requerida
-- **Body**:
-  ```json
-  {
+- **Autenticación**: Requerida
+- **Descripción**: Crea una nueva pista
+
+**Body:**
+```json
+{
     "level": 1,
-    "text": "Nueva pista",
+    "text": "Nueva pista para el nivel",
     "order": 2
-  }
-  ```
+}
+```
 
-### Obtener Pista Específica
+### 3. Obtener Pista Específica
 - **Endpoint**: `GET /api/levels/clues/{id}/`
-- **Descripción**: Obtener información de una pista específica
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene una pista específica
 
-### Actualizar Pista Completa
-- **Endpoint**: `PUT /api/levels/clues/{id}/`
-- **Descripción**: Actualizar todos los campos de una pista
-- **Autenticación**: JWT requerida
+### 4. Actualizar Pista
+- **Endpoint**: `PUT /api/levels/clues/{id}/` o `PATCH /api/levels/clues/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Actualiza una pista
 
-### Actualizar Pista Parcialmente
-- **Endpoint**: `PATCH /api/levels/clues/{id}/`
-- **Descripción**: Actualizar campos específicos de una pista
-- **Autenticación**: JWT requerida
-
-### Eliminar Pista
+### 5. Eliminar Pista
 - **Endpoint**: `DELETE /api/levels/clues/{id}/`
-- **Descripción**: Eliminar una pista
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Elimina una pista
 
 ---
 
-## 🎯 Retos (Challenges)
+## 🎯 Desafíos (Challenges)
 
-### Listar Retos
+### 1. Listar Desafíos
 - **Endpoint**: `GET /api/levels/challenges/`
-- **Descripción**: Obtener lista de todos los retos
-- **Autenticación**: JWT requerida
-- **Respuesta**:
-  ```json
-  [
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene todos los desafíos
+
+**Respuesta:**
+```json
+[
     {
-      "id": 1,
-      "level": 1,
-      "question": "¿Cuál es la respuesta?",
-      "answer": "La respuesta correcta",
-      "points": 10
+        "id": 1,
+        "level": 1,
+        "question": "Crea una tabla llamada 'mochila'",
+        "answer": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT)",
+        "score": 10
     }
-  ]
-  ```
+]
+```
 
-### Crear Reto
+### 2. Crear Desafío
 - **Endpoint**: `POST /api/levels/challenges/`
-- **Descripción**: Crear nuevo reto
-- **Autenticación**: JWT requerida
-- **Body**:
-  ```json
-  {
+- **Autenticación**: Requerida
+- **Descripción**: Crea un nuevo desafío
+
+**Body:**
+```json
+{
     "level": 1,
-    "question": "Nueva pregunta",
-    "answer": "Nueva respuesta",
-    "points": 15
-  }
-  ```
+    "question": "Nueva pregunta del desafío",
+    "answer": "CREATE TABLE ejemplo (id INTEGER PRIMARY KEY)",
+    "score": 15
+}
+```
 
-### Obtener Reto Específico
+### 3. Obtener Desafío Específico
 - **Endpoint**: `GET /api/levels/challenges/{id}/`
-- **Descripción**: Obtener información de un reto específico
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Obtiene un desafío específico
 
-### Actualizar Reto Completo
-- **Endpoint**: `PUT /api/levels/challenges/{id}/`
-- **Descripción**: Actualizar todos los campos de un reto
-- **Autenticación**: JWT requerida
+### 4. Actualizar Desafío
+- **Endpoint**: `PUT /api/levels/challenges/{id}/` o `PATCH /api/levels/challenges/{id}/`
+- **Autenticación**: Requerida
+- **Descripción**: Actualiza un desafío
 
-### Actualizar Reto Parcialmente
-- **Endpoint**: `PATCH /api/levels/challenges/{id}/`
-- **Descripción**: Actualizar campos específicos de un reto
-- **Autenticación**: JWT requerida
-
-### Eliminar Reto
+### 5. Eliminar Desafío
 - **Endpoint**: `DELETE /api/levels/challenges/{id}/`
-- **Descripción**: Eliminar un reto
-- **Autenticación**: JWT requerida
+- **Autenticación**: Requerida
+- **Descripción**: Elimina un desafío
 
 ---
 
-## 🛠️ Panel de Administración
+## 🗄️ Ejecución de SQL
 
-### Panel de Administración Django
-- **Endpoint**: `GET /admin/`
-- **Descripción**: Acceso al panel de administración de Django
-- **Autenticación**: Requiere superusuario
+### 1. Ejecutar Consulta SQL
+- **Endpoint**: `POST /api/levels/{level_id}/execute-sql/`
+- **Autenticación**: Requerida
+- **Descripción**: Ejecuta una consulta SQL en la base de datos específica del nivel
+
+**Body:**
+```json
+{
+    "sql": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT);"
+}
+```
+
+**Respuesta para SELECT:**
+```json
+{
+    "success": true,
+    "message": "Query executed successfully",
+    "results": [
+        [1, "lampara"],
+        [2, "cuerda"]
+    ],
+    "columns": ["id", "item"]
+}
+```
+
+**Respuesta para INSERT/UPDATE/DELETE:**
+```json
+{
+    "success": true,
+    "message": "Query executed successfully",
+    "affected_rows": 1
+}
+```
+
+**Respuesta de Error:**
+```json
+{
+    "error": "SQL Error: syntax error near 'CREAT'"
+}
+```
+
+### 2. Verificar Código de Nivel
+- **Endpoint**: `POST /api/levels/{level_id}/verify-code/`
+- **Autenticación**: Requerida
+- **Descripción**: Verifica si el código proporcionado es correcto para completar el nivel
+
+**Body:**
+```json
+{
+    "code": "1234"
+}
+```
+
+**Respuesta Correcta:**
+```
+"nivel completado!"
+```
+
+**Respuesta Incorrecta:**
+```
+"Error vuelve a intentar!"
+```
+
+### 3. Validar Desafío
+- **Endpoint**: `POST /api/levels/{level_id}/challenges/{challenge_id}/validate/`
+- **Autenticación**: Requerida
+- **Descripción**: Valida si la consulta SQL del usuario coincide con la respuesta esperada del desafío
+
+**Body:**
+```json
+{
+    "sql": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT)"
+}
+```
+
+**Respuesta Correcta:**
+```json
+{
+    "success": true,
+    "message": "¡Reto completado correctamente!",
+    "score": 10,
+    "challenge_id": 1
+}
+```
+
+**Respuesta Incorrecta:**
+```json
+{
+    "success": false,
+    "message": "La consulta no coincide con la respuesta esperada",
+    "expected": "CREATE TABLE mochila (id INTEGER PRIMARY KEY, item TEXT)",
+    "received": "CREATE TABLE mochila (id INTEGER, item TEXT)"
+}
+```
+
+---
+
+## 📊 Modelos de Datos
+
+### CustomUser
+```python
+{
+    "id": "integer (auto)",
+    "username": "string (unique)",
+    "password": "string (hashed)",
+    "score": "integer (default: 0)",
+    "last_score_update": "datetime (auto_now)"
+}
+```
+
+### Level
+```python
+{
+    "id": "integer (auto)",
+    "name": "string (max_length: 100, unique)",
+    "description": "text (optional)",
+    "code": "string (max_length: 10, unique, default: '0000')",
+    "created_at": "datetime (auto_now_add)"
+}
+```
+
+### Clue
+```python
+{
+    "id": "integer (auto)",
+    "level": "foreign_key (Level)",
+    "text": "text",
+    "order": "integer (default: 0)"
+}
+```
+
+### Challenge
+```python
+{
+    "id": "integer (auto)",
+    "level": "foreign_key (Level)",
+    "question": "text",
+    "answer": "string (max_length: 200)",
+    "score": "integer (default: 0)"
+}
+```
+
+---
+
+## 🔧 Configuración Técnica
+
+### Base de Datos
+- **Principal**: SQLite (`db.sqlite3`)
+- **Por Nivel**: SQLite (`level_{level_id}_db.sqlite3`)
+
+### Configuración de REST Framework
+- **Autenticación**: JWT Authentication
+- **Permisos por defecto**: IsAuthenticated
+- **Formato de fecha**: `%d/%m/%Y %H:%M:%S`
+
+### Códigos de Estado HTTP
+- **200**: OK - Operación exitosa
+- **201**: Created - Recurso creado exitosamente
+- **400**: Bad Request - Error en la solicitud
+- **401**: Unauthorized - No autenticado
+- **403**: Forbidden - Sin permisos
+- **404**: Not Found - Recurso no encontrado
+- **500**: Internal Server Error - Error del servidor
 
 ---
 
 ## 📝 Notas Importantes
 
-### Autenticación
-- Los endpoints de **niveles**, **pistas** y **retos** requieren autenticación JWT
-- Los endpoints de **usuarios** y **autenticación** son públicos
-- Para endpoints protegidos, incluir header: `Authorization: Bearer {token}`
+1. **Autenticación**: La mayoría de endpoints requieren autenticación JWT, excepto:
+   - Registro de usuarios (`POST /api/users/`)
+   - Ranking de usuarios (`GET /api/users/ranking/`)
+   - Endpoints de tokens (`/api/token/`)
 
-### Formato de Fechas
-- Todas las fechas se muestran en formato: `dd/mm/yyyy hh:mm:ss`
+2. **Bases de Datos por Nivel**: Cada nivel tiene su propia base de datos SQLite para ejecutar consultas SQL de forma aislada.
 
-### Ranking
-- El ranking se ordena por score descendente
-- En caso de empate, se ordena por `last_score_update` ascendente (el que actualizó primero tiene prioridad)
+3. **Validación de Desafíos**: Las consultas SQL se normalizan (minúsculas, sin espacios extra, sin punto y coma) antes de comparar con la respuesta esperada.
 
-### Modelos de Datos
+4. **Ranking**: Se ordena por puntuación descendente y luego por fecha de última actualización de puntuación.
 
-#### Usuario (CustomUser)
-- `id`: Identificador único
-- `username`: Nombre de usuario
-- `password`: Contraseña (solo para creación/actualización)
-- `score`: Puntuación del usuario
-- `last_score_update`: Fecha de última actualización del score
-
-#### Nivel (Level)
-- `id`: Identificador único
-- `name`: Nombre del nivel
-- `description`: Descripción del nivel
-- `key`: Clave única del nivel
-- `created_at`: Fecha de creación
-- `clues`: Lista de pistas relacionadas
-- `challenges`: Lista de retos relacionados
-
-#### Pista (Clue)
-- `id`: Identificador único
-- `level`: ID del nivel al que pertenece
-- `text`: Texto de la pista
-- `order`: Orden de la pista
-
-#### Reto (Challenge)
-- `id`: Identificador único
-- `level`: ID del nivel al que pertenece
-- `question`: Pregunta del reto
-- `answer`: Respuesta correcta
-- `points`: Puntos que otorga el reto
-
----
-
-## 🚀 Ejemplos de Uso
-
-### 1. Registro de Usuario
-```bash
-curl -X POST http://127.0.0.1:8000/api/users/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "nuevo_usuario", "password": "contraseña123"}'
-```
-
-### 2. Login
-```bash
-curl -X POST http://127.0.0.1:8000/api/token/ \
-  -H "Content-Type: application/json" \
-  -d '{"username": "nuevo_usuario", "password": "contraseña123"}'
-```
-
-### 3. Obtener Ranking de Usuarios
-```bash
-curl -X GET http://127.0.0.1:8000/api/users/users/ranking/
-```
-
-**Respuesta esperada:**
-```json
-[
-  {
-    "username": "player1",
-    "score": 1500,
-    "last_score_update": "15/01/2024 10:30:00"
-  },
-  {
-    "username": "player2",
-    "score": 1200,
-    "last_score_update": "20/01/2024 14:45:00"
-  }
-]
-```
-
-### 4. Crear Nivel (con autenticación)
-```bash
-curl -X POST http://127.0.0.1:8000/api/levels/levels/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer {tu_token}" \
-  -d '{"name": "Nivel 1", "description": "Primer nivel", "key": "nivel_1"}'
-```
-
-### 5. Actualizar Score de Usuario
-```bash
-curl -X PATCH http://127.0.0.1:8000/api/users/users/1/ \
-  -H "Content-Type: application/json" \
-  -d '{"score": 1500}'
-```
+5. **Seguridad**: Las contraseñas se almacenan hasheadas y no se devuelven en las respuestas de la API.
