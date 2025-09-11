@@ -13,9 +13,13 @@ sys.path.append(os.path.join(BASE_DIR, 'apps'))
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure--=2=fpe6w(+cz6=11wf+9rzd-n0@7dxdi$-=!g210)9t8@ao#f')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
