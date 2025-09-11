@@ -3,7 +3,7 @@ from django.db import models
 class Level(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    key = models.CharField(max_length=50, unique=True)  # Level key
+    code = models.CharField(max_length=10, unique=True, default='0000')  # Código de finalización del nivel
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -26,7 +26,7 @@ class Challenge(models.Model):
     level = models.ForeignKey(Level, related_name='challenges', on_delete=models.CASCADE)
     question = models.TextField()
     answer = models.CharField(max_length=200)
-    points = models.IntegerField(default=0)
+    score = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Challenge for {self.level.name}"

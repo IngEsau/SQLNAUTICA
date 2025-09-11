@@ -10,7 +10,7 @@ class ClueSerializer(serializers.ModelSerializer):
 class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
-        fields = ['id', 'level', 'question', 'answer', 'points']
+        fields = ['id', 'level', 'question', 'answer', 'score']
 
 
 class LevelSerializer(serializers.ModelSerializer):
@@ -19,4 +19,14 @@ class LevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Level
-        fields = ['id', 'name', 'description', 'key', 'created_at', 'clues', 'challenges']
+        fields = ['id', 'name', 'description', 'code', 'created_at', 'clues', 'challenges']
+
+
+# Serializer to get level details
+class LevelDetailSerializer(serializers.ModelSerializer):
+    challenges = ChallengeSerializer(many=True, read_only=True)
+    clues = ClueSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Level
+        fields = ['id', 'challenges', 'clues']

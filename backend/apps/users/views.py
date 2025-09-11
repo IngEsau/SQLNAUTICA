@@ -9,7 +9,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """ View to register users """
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]  # Permitir registro sin autenticación
+    permission_classes = [AllowAny]  # Allow registration without authentication
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def ranking(self, request):
