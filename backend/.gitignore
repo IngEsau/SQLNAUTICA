@@ -1,0 +1,75 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Ignora todo en carpetas migrations
+**/migrations/*
+# Pero no ignores los archivos __init__.py en esas carpetas
+!**/migrations/__init__.py
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# PyInstaller
+build/
+dist/
+
+# Package management
+*.egg
+*.egg-info/
+installed.cfg
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
